@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title> PHP CRUD with Bootstrap Modal </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
 </head>
@@ -137,39 +138,6 @@
         </div>
     </div>
 
-
-    <!-- VIEW POP UP FORM (Bootstrap MODAL) -->
-    <div class="modal fade" id="viewmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel"> View product Data </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <form action="delete.php" method="POST">
-
-                    <div class="modal-body">
-
-                        <input type="text" name="view_id" id="view_id">
-
-                        <!-- <p id="fname"> </p> -->
-                        <h4 id="name"> <?php echo ''; ?> </h4>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal"> CLOSE </button>
-                        <!-- <button type="submit" name="deletedata" class="btn btn-primary"> Yes !! Delete it. </button> -->
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-
-
     <div class="container">
         <div class="jumbotron">
             <div class="card">
@@ -178,7 +146,7 @@
             <div class="card">
                 <div class="card-body">
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#productaddmodal">
-                        ADD DATA
+                    <i class="bi bi-plus-lg"></i>ADD DATA
                     </button>
                 </div>
             </div>
@@ -186,14 +154,25 @@
             <div class="card">
                 <div class="card-body">
 
-                    <?php
-                $connection = mysqli_connect("localhost","root","");
-                $db = mysqli_select_db($connection, 'product_crud');
-
-                $query = "SELECT * FROM product";
-                $query_run = mysqli_query($connection, $query);
-            ?>
-                    <table id="datatableid" class="table text-center table-hover table-bordered table-dark">
+                   
+                    
+                <?php
+                    $num_per_page=05;
+                    if(isset($_GET["page"]))
+                    {
+                        $page=$_GET["page"];
+                    }
+                    else
+                    {
+                        $page=1;
+                    }
+                    $start_from=($page-1)*05;
+                    $connection = mysqli_connect("localhost","root","");
+                     $db = mysqli_select_db($connection, 'product_crud');
+                    $sql="select * from product limit $start_from,$num_per_page";
+                    $query_run = mysqli_query($connection, $sql);              
+                ?>
+                    <table id="pagination" class="table text-center table-hover table-bordered table-dark">
                         <thead>
                             <tr>
                                 <th scope="col"> ID</th>
@@ -235,7 +214,29 @@
                     echo "No Record Found";
                 }
             ?>
-                    </table>
+          </table>
+          
+          <?php 
+    
+    
+    $sql="select * from product";
+    $rs_result=mysqli_query($connection,$sql);
+    $total_record=mysqli_num_rows($rs_result);
+    $total_page = ceil($total_record/$num_per_page);
+    if($page>1)
+    {
+        echo "<a href='index.php?page=".($page-1)."' class='btn btn-danger'>Previous</a>";
+    }
+    for($i=1;$i<$total_page;$i++)
+    {
+        echo "<a href='index.php?page=".$i."' class='btn btn-primary'>$i</a>";
+    }
+    if($i>$page)
+    {
+        echo "<a href='index.php?page=".($page+1)."' class='btn btn-danger'>Next</a>";
+    }
+
+?>
                 </div>
             </div>
 
@@ -251,35 +252,18 @@
 
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
-    <script>
-        $(document).ready(function () {
-
-            $('.viewbtn').on('click', function () {
-                $('#viewmodal').modal('show');
-                $.ajax({ //create an ajax request to display.php
-                    type: "GET",
-                    url: "display.php",
-                    dataType: "html", //expect html to be returned                
-                    success: function (response) {
-                        $("#responsecontainer").html(response);
-                        //alert(response);
-                    }
-                });
-            });
-
-        });
-    </script>
-
+    
 
     <script>
         $(document).ready(function () {
 
-            $('#datatableid').DataTable({
+            $('#pagination').DataTable({
                 "pagingType": "full_numbers",
                 "lengthMenu": [
                     [10, 25, 50, -1],
                     [10, 25, 50, "All"]
                 ],
+
                 responsive: true,
                 language: {
                     search: "_INPUT_",
